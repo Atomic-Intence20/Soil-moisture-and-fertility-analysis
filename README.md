@@ -15,7 +15,7 @@ A compact smart agriculture system that detects weeds using image analysis, moni
 - Arduino Uno, soil moisture sensor, relay
 - Camera or image dataset
 
-## 💻 Quick Start
+## 💻 Quick Start-
 
 ```bash
 pip install -r requirements.txt
