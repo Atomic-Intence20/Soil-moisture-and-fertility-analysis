@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Weed Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #56ab2f, #a8e063);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            color: #fff;
+        }
+
+        .upload-box {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .detected {
+            background-color: #d63031;
+            color: white;
+        }
+
+        .not-detected {
+            background-color: #00b894;
+            color: white;
+        }
+
+        #sensorData {
+            margin-top: 30px;
+            font-size: 1rem;
+            color: #2d3436;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        footer {
+            margin-top: 60px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌿 Smart Weed Detection</h1>
+    <div class="upload-box">
+        <p>Select an image to detect weeds:</p>
+        <input type="file" accept="image/*" onchange="handleFileUpload(event)">
+        <div id="result"></div>
+    </div>
+
+    <div id="sensorData">
+        <h3>Sensor Readings</h3>
+        <p id="moisture">Moisture: N/A</p>
+        <p id="temperature">Temperature: N/A</p>
+        <p id="humidity">Humidity: N/A</p>
+    </div>
+
+    <footer>
+        Powered by Roboflow, Flask & Arduino – Precision Agriculture
+    </footer>
+
+    <script>
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+
+                fetch('/detect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image: base64Image })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResult(data);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById('result').innerHTML = `<p class="status detected">❌ Error occurred during detection.</p>`;
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "";  // clear old results
+
+            if (data.error) {
+                resultDiv.innerHTML = `<p class="status detected">❌ Error: ${data.error}</p>`;
+                return;
+            }
+
+            const predictions = data.result.predictions || [];
+            const weedDetected = predictions.some(p => p.class === "weed" && p.confidence > 0.6);
+
+            if (weedDetected) {
+                resultDiv.innerHTML = `<p class="status detected">🌱 Weed Detected! Pesticide pump activated.</p>`;
+            } else {
+                resultDiv.innerHTML = `<p class="status not-detected">✅ No Weed Detected.</p>`;
+            }
+
+            // Display sensor readings
+            const sensorData = data.sensor_data;
+            document.getElementById('moisture').textContent = `Moisture: ${sensorData.moisture}`;
+            document.getElementById('temperature').textContent = `Temperature: ${sensorData.temperature} °C`;
+            document.getElementById('humidity').textContent = `Humidity: ${sensorData.humidity} %`;
+        }
+    </script>
+</body>
+</html>
