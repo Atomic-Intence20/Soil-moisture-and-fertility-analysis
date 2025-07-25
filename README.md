@@ -12,7 +12,7 @@ A compact smart agriculture system that detects weeds using image analysis, moni
 ## 🛠 Requirements
 
 - Python 3.x, Flask, OpenCV
-- Arduino Uno, soil moisture sensor, relay, sprayer
+- Arduino Uno, soil moisture sensor, relay
 - Camera or image dataset
 
 ## 💻 Quick Start
